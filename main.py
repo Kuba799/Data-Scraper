@@ -2,6 +2,7 @@ from selenium.common.exceptions import NoSuchElementException, StaleElementRefer
 from selenium import webdriver
 from bet import SingleGame, BestBet
 import link_scraper
+import operator
 from openpyxl import load_workbook
 
 # hiding browser
@@ -49,7 +50,7 @@ def get_best_odd(dictionary, number=1):
 
 
 def yield_by_odds(dictionary):
-    key, value = max(dictionary.items(), key=lambda p: p[1])
+    key, value = max(dictionary.items(), key=operator.itemgetter(1))
     return key, value
 
 
@@ -126,15 +127,15 @@ file = "zaklady.xlsx"
 
 while True:
 
-    for link in link_scraper.links[80:]:
+    for link in link_scraper.links:
 
         driver = webdriver.Firefox(executable_path=geckodriver, options=options)
         url = link
+
         driver.get(url)
 
         html = driver.page_source
 
-        # print(get_match(driver))
 
         # Checking if any odds exists
         try:
@@ -148,10 +149,9 @@ while True:
             table_row = get_rows(driver)
             table_cell = get_cells(driver)
         except UnboundLocalError as e:
-            print(get_match(driver), "Skipped because of:", e)
+            # print(get_match(driver), "Skipped because of:", e)
+            driver.close()
             continue
-
-        # store_rows_and_cells(driver)
 
         """
         print("table_row before truncating")
@@ -242,11 +242,6 @@ while True:
             print(get_match(driver), "skipped, because of", e)
             continue
 
-        #print(yield_by_odds(dictionary_home))
-        """
-        for object in odds_object_list:
-            print(object.get_single_game())
-        """
         """
         Match = BestBet(get_match(driver), get_date(driver), get_best_odd(dictionary_home)[0][0],
                         get_best_odd(dictionary_home)[0][1], get_best_odd(dictionary_draw)[0][0],
@@ -269,4 +264,4 @@ while True:
 
         driver.close()
 
-    driver.quit()
+driver.quit()

@@ -1,4 +1,5 @@
 from selenium import webdriver
+import time
 
 from selenium.webdriver.firefox.options import Options
 
@@ -10,15 +11,37 @@ options.add_argument('-headless')
 geckodriver = 'D:\Python\geckodriver.exe'
 driver = webdriver.Firefox(executable_path=geckodriver, options=options)
 links = []
-urls = ['https://www.betexplorer.com/next/soccer/', 'https://www.betexplorer.com/next/hockey/']
+urls = ['https://www.betexplorer.com/next/soccer/','https://www.betexplorer.com/next/hockey/']
+
+# time to compare
+t = time.localtime()
+current_time = time.strftime("%H:%M", t)
+
+url_dict = {}
 for url in urls:
     driver.get(url)
     # scraping match links from url
     elements = driver.find_elements_by_class_name("table-main__tt [href]")
+    dates = driver.find_elements_by_class_name("table-main__time")
+
+    for date, element in zip(dates, elements):
+        key = date.text
+        if key > current_time:
+            url_dict.setdefault(key, [])
+            url_dict[key].append(element.get_attribute('href'))
+
+    for links_list in url_dict.values():
+        #print(links)
+        for link in links_list:
+            links.append(link)
+
+    """
     links_subpage = [link.get_attribute('href') for link in elements]
     for link in links_subpage:
         links.append(link)
 
+    #links = (link for link in links_subpage)
+    """
 
 print("links scrapped")
 driver.quit()
